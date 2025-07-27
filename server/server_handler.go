@@ -28,11 +28,6 @@ func (s *Server) handleClientHandler(w http.ResponseWriter, r *http.Request) {
 		s.Infof("ignored client connection using protocol '%s', expected '%s'",
 			protocol, chshare.ProtocolVersion)
 	}
-	//proxy target was provided
-	if s.reverseProxy != nil {
-		s.reverseProxy.ServeHTTP(w, r)
-		return
-	}
 	//no proxy defined, provide access to health/version checks
 	switch r.URL.Path {
 	case "/health":
@@ -120,14 +115,13 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 		}
-		//confirm reverse tunnels are allowed
-		if r.Reverse && !s.config.Reverse {
-			l.Debugf("Denied reverse port forwarding request, please enable --reverse")
-			failed(s.Errorf("Reverse port forwaring not enabled on server"))
+		// Enforce reverse-only tunnels
+		if !r.Reverse {
+			failed(s.Errorf("Only reverse port forwarding is supported. Remote '%s' is not a reverse remote.", r.String()))
 			return
 		}
 		//confirm reverse tunnel is available
-		if r.Reverse && !r.CanListen() {
+		if !r.CanListen() {
 			failed(s.Errorf("Server cannot listen on %s", r.String()))
 			return
 		}
@@ -137,9 +131,9 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, req *http.Request) {
 	//tunnel per ssh connection
 	tunnel := tunnel.New(tunnel.Config{
 		Logger:    l,
-		Inbound:   s.config.Reverse,
+		Inbound:   true,
 		Outbound:  true, //server always accepts outbound
-		Socks:     s.config.Socks5,
+		Socks:     false,
 		KeepAlive: s.config.KeepAlive,
 	})
 	//bind

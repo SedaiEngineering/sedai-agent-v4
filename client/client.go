@@ -92,9 +92,6 @@ func NewClient(c *Config) (*Client, error) {
 			u.Host = u.Host + ":80"
 		}
 	}
-	hasReverse := false
-	hasSocks := false
-	hasStdio := false
 	client := &Client{
 		Logger: cio.NewLogger("client"),
 		config: c,
@@ -145,21 +142,8 @@ func NewClient(c *Config) (*Client, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Failed to decode remote '%s': %s", s, err)
 		}
-		if r.Socks {
-			hasSocks = true
-		}
-		if r.Reverse {
-			hasReverse = true
-		}
-		if r.Stdio {
-			if hasStdio {
-				return nil, errors.New("Only one stdio is allowed")
-			}
-			hasStdio = true
-		}
-		//confirm non-reverse tunnel is available
-		if !r.Reverse && !r.Stdio && !r.CanListen() {
-			return nil, fmt.Errorf("Client cannot listen on %s", r.String())
+		if !r.Reverse {
+			return nil, fmt.Errorf("Only reverse port forwarding is supported. Remote '%s' is not a reverse remote.", s)
 		}
 		client.computed.Remotes = append(client.computed.Remotes, r)
 	}
@@ -183,8 +167,8 @@ func NewClient(c *Config) (*Client, error) {
 	client.tunnel = tunnel.New(tunnel.Config{
 		Logger:    client.Logger,
 		Inbound:   true, //client always accepts inbound
-		Outbound:  hasReverse,
-		Socks:     hasReverse && hasSocks,
+		Outbound:  true,
+		Socks:     false,
 		KeepAlive: client.config.KeepAlive,
 	})
 	return client, nil
@@ -250,14 +234,6 @@ func (c *Client) Start(ctx context.Context) error {
 	//connect to chisel server
 	eg.Go(func() error {
 		return c.connectionLoop(ctx)
-	})
-	//listen sockets
-	eg.Go(func() error {
-		clientInbound := c.computed.Remotes.Reversed(false)
-		if len(clientInbound) == 0 {
-			return nil
-		}
-		return c.tunnel.BindRemotes(ctx, clientInbound)
 	})
 	return nil
 }

@@ -144,16 +144,6 @@ var serverHelp = `
     specify a time with a unit, for example '5s' or '2m'. Defaults
     to '25s' (set to 0s to disable).
 
-    --backend, Specifies another HTTP server to proxy requests to when
-    chisel receives a normal HTTP request. Useful for hiding chisel in
-    plain sight.
-
-    --socks5, Allow clients to access the internal SOCKS5 proxy. See
-    chisel client --help for more information.
-
-    --reverse, Allow clients to specify reverse port forwarding remotes
-    in addition to normal remotes.
-
     --tls-key, Enables TLS and provides optional path to a PEM-encoded
     TLS private key. When this flag is set, you must also set --tls-cert,
     and you cannot set --tls-domain.
@@ -186,10 +176,6 @@ func server(args []string) {
 	flags.StringVar(&config.AuthFile, "authfile", "", "")
 	flags.StringVar(&config.Auth, "auth", "", "")
 	flags.DurationVar(&config.KeepAlive, "keepalive", 25*time.Second, "")
-	flags.StringVar(&config.Proxy, "proxy", "", "")
-	flags.StringVar(&config.Proxy, "backend", "", "")
-	flags.BoolVar(&config.Socks5, "socks5", false, "")
-	flags.BoolVar(&config.Reverse, "reverse", false, "")
 	flags.StringVar(&config.TLS.Key, "tls-key", "", "")
 	flags.StringVar(&config.TLS.Cert, "tls-cert", "", "")
 	flags.Var(multiFlag{&config.TLS.Domains}, "tls-domain", "")
@@ -305,19 +291,11 @@ var clientHelp = `
 
   <server> is the URL to the chisel server.
 
-  <remote>s are remote connections tunneled through the server, each of
-  which come in the form:
+  <remote>s are remote connections tunneled through the server.
+  All remotes are reverse remotes, which means they are defined on the
+  client, but connections are accepted on the server.
 
-    <local-host>:<local-port>:<remote-host>:<remote-port>/<protocol>
-
-    ■ local-host defaults to 0.0.0.0 (all interfaces).
-    ■ local-port defaults to remote-port.
-    ■ remote-port is required*.
-    ■ remote-host defaults to 0.0.0.0 (server localhost).
-    ■ protocol defaults to tcp.
-
-  which shares <remote-host>:<remote-port> from the server to the client
-  as <local-host>:<local-port>, or:
+  Each remote has the form:
 
     R:<local-interface>:<local-port>:<remote-host>:<remote-port>/<protocol>
 
@@ -326,38 +304,9 @@ var clientHelp = `
 
     example remotes
 
-      3000
-      example.com:3000
-      3000:google.com:80
-      192.168.0.5:3000:google.com:80
-      socks
-      5000:socks
       R:2222:localhost:22
-      R:socks
-      R:5000:socks
-      stdio:example.com:22
-      1.1.1.1:53/udp
-
-    When the chisel server has --socks5 enabled, remotes can
-    specify "socks" in place of remote-host and remote-port.
-    The default local host and port for a "socks" remote is
-    127.0.0.1:1080. Connections to this remote will terminate
-    at the server's internal SOCKS5 proxy.
-
-    When the chisel server has --reverse enabled, remotes can
-    be prefixed with R to denote that they are reversed. That
-    is, the server will listen and accept connections, and they
-    will be proxied through the client which specified the remote.
-    Reverse remotes specifying "R:socks" will listen on the server's
-    default socks port (1080) and terminate the connection at the
-    client's internal SOCKS5 proxy.
-
-    When stdio is used as local-host, the tunnel will connect standard
-    input/output of this program with the remote. This is useful when 
-    combined with ssh ProxyCommand. You can use
-      ssh -o ProxyCommand='chisel client chiselserver stdio:%h:%p' \
-          user@example.com
-    to connect to an SSH server through the tunnel.
+      R:8080:google.com:80
+      R:53/udp:1.1.1.1:53/udp
 
   Options:
 

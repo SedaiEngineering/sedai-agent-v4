@@ -31,7 +31,7 @@ func TestCustomHeaders(t *testing.T) {
 		KeepAlive:        time.Second,
 		MaxRetryInterval: time.Second,
 		Server:           server.URL,
-		Remotes:          []string{"9000"},
+		Remotes:          []string{"R:9000"},
 		Headers:          headers,
 	}
 	c, err := NewClient(&config)
