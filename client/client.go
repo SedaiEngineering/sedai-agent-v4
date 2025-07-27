@@ -2,7 +2,6 @@ package chclient
 
 import (
 	"context"
-	"crypto/md5"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
@@ -24,7 +23,6 @@ import (
 	"github.com/jpillora/chisel/share/tunnel"
 
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/net/proxy"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -36,7 +34,6 @@ type Config struct {
 	MaxRetryCount    int
 	MaxRetryInterval time.Duration
 	Server           string
-	Proxy            string
 	Remotes          []string
 	Headers          http.Header
 	TLS              TLSConfig
@@ -60,7 +57,6 @@ type Client struct {
 	computed  settings.Config
 	sshConfig *ssh.ClientConfig
 	tlsConfig *tls.Config
-	proxyURL  *url.URL
 	server    string
 	connCount cnet.ConnCount
 	stop      func()
@@ -146,13 +142,6 @@ func NewClient(c *Config) (*Client, error) {
 		}
 		client.computed.Remotes = append(client.computed.Remotes, r)
 	}
-	//outbound proxy
-	if p := c.Proxy; p != "" {
-		client.proxyURL, err = url.Parse(p)
-		if err != nil {
-			return nil, fmt.Errorf("Invalid proxy URL (%s)", err)
-		}
-	}
 	//ssh auth and config
 	user, pass := settings.ParseAuth(c.Auth)
 	client.sshConfig = &ssh.ClientConfig{
@@ -189,35 +178,17 @@ func (c *Client) verifyServer(hostname string, remote net.Addr, key ssh.PublicKe
 		return nil
 	}
 	got := ccrypto.FingerprintKey(key)
-	_, err := base64.StdEncoding.DecodeString(expect)
-	if _, ok := err.(base64.CorruptInputError); ok {
-		c.Logger.Infof("Specified deprecated MD5 fingerprint (%s), please update to the new SHA256 fingerprint: %s", expect, got)
-		return c.verifyLegacyFingerprint(key)
-	} else if err != nil {
-		return fmt.Errorf("Error decoding fingerprint: %w", err)
+	if _, err := base64.StdEncoding.DecodeString(expect); err != nil {
+		return fmt.Errorf("invalid fingerprint format (must be base64-encoded SHA256 hash): %w", err)
 	}
 	if got != expect {
-		return fmt.Errorf("Invalid fingerprint (%s)", got)
+		return fmt.Errorf("invalid fingerprint (%s)", got)
 	}
 	//overwrite with complete fingerprint
 	c.Infof("Fingerprint %s", got)
 	return nil
 }
 
-// verifyLegacyFingerprint calculates and compares legacy MD5 fingerprints
-func (c *Client) verifyLegacyFingerprint(key ssh.PublicKey) error {
-	bytes := md5.Sum(key.Marshal())
-	strbytes := make([]string, len(bytes))
-	for i, b := range bytes {
-		strbytes[i] = fmt.Sprintf("%02x", b)
-	}
-	got := strings.Join(strbytes, ":")
-	expect := c.config.Fingerprint
-	if !strings.HasPrefix(got, expect) {
-		return fmt.Errorf("Invalid fingerprint (%s)", got)
-	}
-	return nil
-}
 
 // Start client and does not block
 func (c *Client) Start(ctx context.Context) error {
@@ -225,11 +196,7 @@ func (c *Client) Start(ctx context.Context) error {
 	c.stop = cancel
 	eg, ctx := errgroup.WithContext(ctx)
 	c.eg = eg
-	via := ""
-	if c.proxyURL != nil {
-		via = " via " + c.proxyURL.String()
-	}
-	c.Infof("Connecting to %s%s\n", c.server, via)
+	c.Infof("Connecting to %s\n", c.server)
 	//connect to chisel server
 	eg.Go(func() error {
 		return c.connectionLoop(ctx)
@@ -237,36 +204,6 @@ func (c *Client) Start(ctx context.Context) error {
 	return nil
 }
 
-func (c *Client) setProxy(u *url.URL, d *websocket.Dialer) error {
-	// CONNECT proxy
-	if !strings.HasPrefix(u.Scheme, "socks") {
-		d.Proxy = func(*http.Request) (*url.URL, error) {
-			return u, nil
-		}
-		return nil
-	}
-	// SOCKS5 proxy
-	if u.Scheme != "socks" && u.Scheme != "socks5h" {
-		return fmt.Errorf(
-			"unsupported socks proxy type: %s:// (only socks5h:// or socks:// is supported)",
-			u.Scheme,
-		)
-	}
-	var auth *proxy.Auth
-	if u.User != nil {
-		pass, _ := u.User.Password()
-		auth = &proxy.Auth{
-			User:     u.User.Username(),
-			Password: pass,
-		}
-	}
-	socksDialer, err := proxy.SOCKS5("tcp", u.Host, auth, proxy.Direct)
-	if err != nil {
-		return err
-	}
-	d.NetDial = socksDialer.Dial
-	return nil
-}
 
 // Wait blocks while the client is running.
 func (c *Client) Wait() error {

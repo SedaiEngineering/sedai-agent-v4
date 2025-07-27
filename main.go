@@ -303,12 +303,6 @@ var clientHelp = `
     --max-retry-interval, Maximum wait time before retrying after a
     disconnection. Defaults to 5 minutes.
 
-    --proxy, An optional HTTP CONNECT or SOCKS5 proxy which will be
-    used to reach the chisel server. Authentication can be specified
-    inside the URL.
-    For example, http://admin:password@my-server.com:8081
-            or: socks://admin:password@my-server.com:1080
-
     --header, Set a custom header in the form "HeaderName: HeaderContent".
     Can be used multiple times. (e.g --header "Foo: Bar" --header "Hello: World")
 
@@ -346,7 +340,6 @@ func client(args []string) {
 	flags.DurationVar(&config.KeepAlive, "keepalive", 25*time.Second, "")
 	flags.IntVar(&config.MaxRetryCount, "max-retry-count", -1, "")
 	flags.DurationVar(&config.MaxRetryInterval, "max-retry-interval", 0, "")
-	flags.StringVar(&config.Proxy, "proxy", "", "")
 	flags.StringVar(&config.TLS.CA, "tls-ca", "", "")
 	flags.BoolVar(&config.TLS.SkipVerify, "tls-skip-verify", false, "")
 	flags.StringVar(&config.TLS.Cert, "tls-cert", "", "")

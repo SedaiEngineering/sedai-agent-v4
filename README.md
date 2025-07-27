@@ -24,7 +24,6 @@ Chisel is a fast TCP/UDP tunnel, transported over HTTP, secured via SSH. Single 
 - [Authenticated connections](#authentication); authenticated client connections with a users config file, authenticated server connections with fingerprint matching.
 - Client auto-reconnects with [exponential backoff](https://github.com/jpillora/backoff)
 - Clients can create multiple tunnel endpoints over one TCP connection
-- Clients can optionally pass through SOCKS or HTTP CONNECT proxies
 - Reverse port forwarding (Connections go through the server and out the client)
 
 ## Install
@@ -303,7 +302,6 @@ Internally, this is done using the _Password_ authentication method provided by 
 
 - `1.0` - Initial release
 - `1.1` - Replaced simple symmetric encryption for ECDSA SSH
-- `1.2` - Added SOCKS5 (server) and HTTP CONNECT (client) support
 - `1.3` - Added reverse tunnelling support
 - `1.4` - Added arbitrary HTTP header support
 - `1.5` - Added reverse SOCKS support (by @aus)
