@@ -29,8 +29,6 @@ type (
 )
 
 var (
-	NewDetermRand    = ccrypto.NewDetermRand
-	GenerateKey      = ccrypto.GenerateKey
 	FingerprintKey   = ccrypto.FingerprintKey
 	Pipe             = cio.Pipe
 	NewLoggerFlag    = cio.NewLoggerFlag

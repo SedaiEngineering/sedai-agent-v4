@@ -53,16 +53,19 @@ func TestVerifyFingerprint(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r := ccrypto.NewDetermRand([]byte("test123"))
-	priv, err := ccrypto.GenerateKeyGo119(elliptic.P256(), r)
+	//this is the key which has the fingerprint above
+	pemBytes := []byte(`
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIHi0F0A0E2TzSg3bC5xI0i1aAiqtB3Kj5s70fE0m97YgoAoGCCqGSM49
+AwEHoUQDQgAEJmUpZk19a32c2uT+hJ17v0379Kbx46F4rX+5n/4X+HqZ+y1Yc21S
+iG94qA6y+Nn+1Z9a9d7Sj0jC6iFq/Q/v7A==
+-----END EC PRIVATE KEY-----
+`)
+	priv, err := ssh.ParsePrivateKey(pemBytes)
 	if err != nil {
 		t.Fatal(err)
 	}
-	pub, err := ssh.NewPublicKey(&priv.PublicKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = c.verifyServer("", nil, pub)
+	err = c.verifyServer("", nil, priv.PublicKey())
 	if err != nil {
 		t.Fatal(err)
 	}

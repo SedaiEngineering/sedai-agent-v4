@@ -2,8 +2,6 @@ package ccrypto
 
 import (
 	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
@@ -18,37 +16,8 @@ const ChiselKeyPrefix = "ck-"
 //   .               ^             .
 //   .               |             .
 //   .               |             .
-// Seed -------> PrivateKey        .
-//   .               ^             .
-//   .               |             .
 //   .               V             .
 //   ..........> ChiselKey .........
-
-func Seed2PEM(seed string) ([]byte, error) {
-	privateKey, err := seed2PrivateKey(seed)
-	if err != nil {
-		return nil, err
-	}
-
-	return privateKey2PEM(privateKey)
-}
-
-func seed2ChiselKey(seed string) ([]byte, error) {
-	privateKey, err := seed2PrivateKey(seed)
-	if err != nil {
-		return nil, err
-	}
-
-	return privateKey2ChiselKey(privateKey)
-}
-
-func seed2PrivateKey(seed string) (*ecdsa.PrivateKey, error) {
-	if seed == "" {
-		return ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	} else {
-		return GenerateKeyGo119(elliptic.P256(), NewDetermRand([]byte(seed)))
-	}
-}
 
 func privateKey2ChiselKey(privateKey *ecdsa.PrivateKey) ([]byte, error) {
 	b, err := x509.MarshalECPrivateKey(privateKey)

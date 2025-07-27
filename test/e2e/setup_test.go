@@ -2,10 +2,16 @@ package e2e_test
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
+	"encoding/pem"
 	"io"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -54,8 +60,33 @@ func (tl *testLayout) setup(t *testing.T) (server *chserver.Server, client *chcl
 			f.Close()
 		}()
 	}
+	// create temp key file
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatalf("failed to generate key: %s", err)
+	}
+	keyBytes, err := x509.MarshalECPrivateKey(key)
+	if err != nil {
+		t.Fatalf("failed to marshal key: %s", err)
+	}
+	pemKey := &pem.Block{
+		Type:  "EC PRIVATE KEY",
+		Bytes: keyBytes,
+	}
+	tmpKeyFile, err := os.CreateTemp("", "test-key-*.pem")
+	if err != nil {
+		t.Fatalf("failed to create temp key file: %s", err)
+	}
+	if err := pem.Encode(tmpKeyFile, pemKey); err != nil {
+		t.Fatalf("failed to encode key: %s", err)
+	}
+	tmpKeyFile.Close()
+	//set server keyfile if not set
+	if tl.server.KeyFile == "" {
+		tl.server.KeyFile = tmpKeyFile.Name()
+	}
 	//server
-	server, err := chserver.NewServer(tl.server)
+	server, err = chserver.NewServer(tl.server)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,6 +132,7 @@ func (tl *testLayout) setup(t *testing.T) (server *chserver.Server, client *chcl
 		cancel()
 		server.Wait()
 		client.Wait()
+		os.Remove(tmpKeyFile.Name())
 		//confirm goroutines have been cleaned up
 		// time.Sleep(500 * time.Millisecond)
 		// TODO remove sleep
