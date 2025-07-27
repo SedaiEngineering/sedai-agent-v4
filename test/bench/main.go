@@ -177,7 +177,6 @@ func main() {
 
 	hd := exec.Command("chisel", "server",
 		// "-v",
-		"--key", "foobar",
 		"--port", "2002")
 	hd.Stdout = os.Stdout
 	if err := hd.Start(); err != nil {
@@ -189,7 +188,6 @@ func main() {
 
 	hf := exec.Command("chisel", "client",
 		// "-v",
-		"--fingerprint", "mOz4rg9zlQ409XAhhj6+fDDVwQMY42CL3Zg2W2oTYxA=",
 		"127.0.0.1:2002",
 		"2001:3000")
 	hf.Stdout = os.Stdout

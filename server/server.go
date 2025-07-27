@@ -23,7 +23,6 @@ import (
 
 // Config is the configuration for the chisel service
 type Config struct {
-	KeySeed   string
 	KeyFile   string
 	AuthJSON  string
 	KeepAlive time.Duration
@@ -100,8 +99,8 @@ func NewServer(c *Config) (*Server, error) {
 			}
 		}
 	} else {
-		//generate private key (optionally using seed)
-		pemBytes, err = ccrypto.Seed2PEM(c.KeySeed)
+		//generate private key
+		pemBytes, err = ccrypto.Seed2PEM("")
 		if err != nil {
 			log.Fatal("Failed to generate key")
 		}

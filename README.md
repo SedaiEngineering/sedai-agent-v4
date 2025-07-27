@@ -115,13 +115,6 @@ $ chisel server --help
     --port, -p, Defines the HTTP listening port (defaults to the environment
     variable PORT and fallsback to port 8080).
 
-    --key, (deprecated use --keygen and --keyfile instead)
-    An optional string to seed the generation of a ECDSA public
-    and private key pair. All communications will be secured using this
-    key pair. Share the subsequent fingerprint with clients to enable detection
-    of man-in-the-middle attacks (defaults to the CHISEL_KEY environment
-    variable, otherwise a new key is generate each run).
-
     --keygen, A path to write a newly generated PEM-encoded SSH private key file.
     If users depend on your --key fingerprint, you may also include your --key to
     output your existing key. Use - (dash) to output the generated key to stdout.
@@ -327,7 +320,7 @@ Internally, this is done using the _Password_ authentication method provided by 
 - `1.6` - Added client stdio support (by @BoleynSu)
 - `1.7` - Added UDP support
 - `1.8` - Move to a `scratch`Docker image
-- `1.9` - Bump to Go 1.21. Switch from `--key` seed to P256 key strings with `--key{gen,file}` (by @cmenginnz)
+- `1.9` - Bump to Go 1.21. Switch from `--key` seed to `--keyfile` for specifying the server private key (by @cmenginnz)
 - `1.10` - Bump to Go 1.22. Add `.rpm` `.deb` and `.akp` to releases. Fix bad version comparison.
 
 ## License

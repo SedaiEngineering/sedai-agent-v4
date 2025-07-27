@@ -18,7 +18,6 @@ func TestAuth(t *testing.T) {
 	//setup server, client, fileserver
 	teardown := simpleSetup(t,
 		&chserver.Config{
-			KeySeed:  "foobar",
 			AuthJSON: `{"users":[{"name":"foo","password":"bar"}]}`,
 		},
 		&chclient.Config{

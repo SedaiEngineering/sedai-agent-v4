@@ -104,13 +104,6 @@ var serverHelp = `
     --port, -p, Defines the HTTP listening port (defaults to the environment
     variable PORT and fallsback to port 8080).
 
-    --key, (deprecated use --keygen and --keyfile instead)
-    An optional string to seed the generation of a ECDSA public
-    and private key pair. All communications will be secured using this
-    key pair. Share the subsequent fingerprint with clients to enable detection
-    of man-in-the-middle attacks (defaults to the CHISEL_KEY environment
-    variable, otherwise a new key is generate each run).
-
     --keygen, A path to write a newly generated PEM-encoded SSH private key file.
     If users depend on your --key fingerprint, you may also include your --key to
     output your existing key. Use - (dash) to output the generated key to stdout.
@@ -167,7 +160,6 @@ func server(args []string) {
 	flags := flag.NewFlagSet("server", flag.ContinueOnError)
 
 	config := &chserver.Config{}
-	flags.StringVar(&config.KeySeed, "key", "", "")
 	flags.StringVar(&config.KeyFile, "keyfile", "", "")
 	flags.StringVar(&config.AuthJSON, "auth-json", "", "")
 	flags.DurationVar(&config.KeepAlive, "keepalive", 25*time.Second, "")
@@ -190,15 +182,10 @@ func server(args []string) {
 	flags.Parse(args)
 
 	if *keyGen != "" {
-		if err := ccrypto.GenerateKeyFile(*keyGen, config.KeySeed); err != nil {
+		if err := ccrypto.GenerateKeyFile(*keyGen, ""); err != nil {
 			log.Fatal(err)
 		}
 		return
-	}
-
-	if config.KeySeed != "" {
-		log.Print("Option `--key` is deprecated and will be removed in a future version of chisel.")
-		log.Print("Please use `chisel server --keygen /file/path`, followed by `chisel server --keyfile /file/path` to specify the SSH private key")
 	}
 
 	if *host == "" {
@@ -218,8 +205,6 @@ func server(args []string) {
 	}
 	if config.KeyFile == "" {
 		config.KeyFile = settings.Env("KEY_FILE")
-	} else if config.KeySeed == "" {
-		config.KeySeed = settings.Env("KEY")
 	}
 	if config.AuthJSON == "" {
 		config.AuthJSON = settings.Env("AUTH_JSON")
