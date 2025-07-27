@@ -18,13 +18,13 @@ func TestAuth(t *testing.T) {
 	//setup server, client, fileserver
 	teardown := simpleSetup(t,
 		&chserver.Config{
-			KeySeed: "foobar",
-			Auth:    "../bench/userfile",
+			KeySeed:  "foobar",
+			AuthJSON: `{"users":[{"name":"foo","password":"bar"}]}`,
 		},
 		&chclient.Config{
 			Remotes: []string{
-				"0.0.0.0:" + tmpPort1 + ":127.0.0.1:$FILEPORT",
-				"0.0.0.0:" + tmpPort2 + ":localhost:$FILEPORT",
+				"R:" + tmpPort1 + ":$FILEPORT",
+				"R:" + tmpPort2 + ":$FILEPORT",
 			},
 			Auth: "foo:bar",
 		})

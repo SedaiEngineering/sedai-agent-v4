@@ -26,10 +26,6 @@ Chisel is a fast TCP/UDP tunnel, transported over HTTP, secured via SSH. Single 
 - Clients can create multiple tunnel endpoints over one TCP connection
 - Clients can optionally pass through SOCKS or HTTP CONNECT proxies
 - Reverse port forwarding (Connections go through the server and out the client)
-- Server optionally doubles as a [reverse proxy](http://golang.org/pkg/net/http/httputil/#NewSingleHostReverseProxy)
-- Server optionally allows [SOCKS5](https://en.wikipedia.org/wiki/SOCKS) connections (See [guide below](#socks5-guide))
-- Clients optionally allow [SOCKS5](https://en.wikipedia.org/wiki/SOCKS) connections from a reversed port forward
-- Client connections over stdio which supports `ssh -o ProxyCommand` providing SSH over HTTP
 
 ## Install
 
@@ -311,46 +307,6 @@ Encryption is always enabled. When you start up a chisel server, it will generat
 Using the `--auth-json` option, the server may optionally provide user credentials as a JSON string to create a list of accepted users. The client then authenticates using the `--auth` option. See the `--help` above for more information.
 
 Internally, this is done using the _Password_ authentication method provided by SSH. Learn more about `crypto/ssh` here http://blog.gopheracademy.com/go-and-ssh/.
-
-### SOCKS5 Guide with Docker
-
-1. Print a new private key to the terminal
-
-    ```sh
-    chisel server --keygen -
-    # or save it to disk --keygen /path/to/mykey
-    ```
-
-1. Start your chisel server
-
-    ```sh
-    jpillora/chisel server --keyfile '<ck-base64 string or file path>' -p 9312 --socks5
-    ```
-
-1. Connect your chisel client (using server's fingerprint)
-
-    ```sh
-    chisel client --fingerprint '<see server output>' <server-address>:9312 socks
-    ```
-
-1. Point your SOCKS5 clients (e.g. OS/Browser) to:
-
-    ```
-    <client-address>:1080
-    ```
-
-1. Now you have an encrypted, authenticated SOCKS5 connection over HTTP
-
-
-#### Caveats
-
-Since WebSockets support is required:
-
-- IaaS providers all will support WebSockets (unless an unsupporting HTTP proxy has been forced in front of you, in which case I'd argue that you've been downgraded to PaaS)
-- PaaS providers vary in their support for WebSockets
-  - Heroku has full support
-  - Openshift has full support though connections are only accepted on ports 8443 and 8080
-  - Google App Engine has **no** support (Track this on [their repo](https://code.google.com/p/googleappengine/issues/detail?id=2535))
 
 ## Contributing
 

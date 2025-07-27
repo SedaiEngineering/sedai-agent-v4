@@ -22,7 +22,7 @@ func TestTLS(t *testing.T) {
 			TLS: *tlsConfig.serverTLS,
 		},
 		&chclient.Config{
-			Remotes: []string{tmpPort + ":$FILEPORT"},
+			Remotes: []string{"R:" + tmpPort + ":$FILEPORT"},
 			TLS:     *tlsConfig.clientTLS,
 			Server:  "https://localhost:" + tmpPort,
 		})
@@ -53,7 +53,7 @@ func TestMTLS(t *testing.T) {
 			TLS: *tlsConfig.serverTLS,
 		},
 		&chclient.Config{
-			Remotes: []string{tmpPort + ":$FILEPORT"},
+			Remotes: []string{"R:" + tmpPort + ":$FILEPORT"},
 			TLS:     *tlsConfig.clientTLS,
 			Server:  "https://localhost:" + tmpPort,
 		})
@@ -85,7 +85,7 @@ func TestTLSMissingClientCert(t *testing.T) {
 			TLS: *tlsConfig.serverTLS,
 		},
 		&chclient.Config{
-			Remotes: []string{tmpPort + ":$FILEPORT"},
+			Remotes: []string{"R:" + tmpPort + ":$FILEPORT"},
 			TLS:     *tlsConfig.clientTLS,
 			Server:  "https://localhost:" + tmpPort,
 		})
@@ -115,7 +115,7 @@ func TestTLSMissingClientCA(t *testing.T) {
 			TLS: *tlsConfig.serverTLS,
 		},
 		&chclient.Config{
-			Remotes: []string{tmpPort + ":$FILEPORT"},
+			Remotes: []string{"R:" + tmpPort + ":$FILEPORT"},
 			TLS:     *tlsConfig.clientTLS,
 			Server:  "https://localhost:" + tmpPort,
 		})

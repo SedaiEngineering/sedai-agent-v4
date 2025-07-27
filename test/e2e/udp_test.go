@@ -25,7 +25,7 @@ func TestUDP(t *testing.T) {
 		&chserver.Config{},
 		&chclient.Config{
 			Remotes: []string{
-				inboundPort + ":" + echoPort + "/udp",
+				"R:" + inboundPort + ":" + echoPort + "/udp",
 			},
 		},
 	)
