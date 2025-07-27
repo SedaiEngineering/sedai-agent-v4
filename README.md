@@ -136,22 +136,18 @@ $ chisel server --help
     environment variable). Since ECDSA keys are short, you may also set keyfile
     to an inline base64 private key (e.g. chisel server --keygen - | base64).
 
-    --authfile, An optional path to a users.json file. This file should
-    be an object with users defined like:
-      {
-        "<user:pass>": ["<addr-regex>","<addr-regex>"]
-      }
-    when <user> connects, their <pass> will be verified and then
-    each of the remote addresses will be compared against the list
-    of address regular expressions for a match. Addresses will
-    always come in the form "<remote-host>:<remote-port>" for normal remotes
-    and "R:<local-interface>:<local-port>" for reverse port forwarding
-    remotes. This file will be automatically reloaded on change.
-
-    --auth, An optional string representing a single user with full
-    access, in the form of <user:pass>. It is equivalent to creating an
-    authfile with {"<user:pass>": [""]}. If unset, it will use the
-    environment variable AUTH.
+    --auth-json, User authentication credentials as a JSON string.
+    This is useful for passing credentials via environment variables.
+    (defaults to the CHISEL_AUTH_JSON environment variable).
+    JSON format:
+    {
+      "users": [
+        {
+          "name": "username",
+          "password": "password"
+        }
+      ]
+    }
 
     --keepalive, An optional keepalive interval. Since the underlying
     transport is HTTP, in many instances we'll be traversing through
@@ -359,7 +355,7 @@ Encryption is always enabled. When you start up a chisel server, it will generat
 
 ### Authentication
 
-Using the `--authfile` option, the server may optionally provide a `user.json` configuration file to create a list of accepted users. The client then authenticates using the `--auth` option. See [users.json](example/users.json) for an example authentication configuration file. See the `--help` above for more information.
+Using the `--auth-json` option, the server may optionally provide user credentials as a JSON string to create a list of accepted users. The client then authenticates using the `--auth` option. See the `--help` above for more information.
 
 Internally, this is done using the _Password_ authentication method provided by SSH. Learn more about `crypto/ssh` here http://blog.gopheracademy.com/go-and-ssh/.
 

@@ -121,22 +121,18 @@ var serverHelp = `
     environment variable). Since ECDSA keys are short, you may also set keyfile
     to an inline base64 private key (e.g. chisel server --keygen - | base64).
 
-    --authfile, An optional path to a users.json file. This file should
-    be an object with users defined like:
-      {
-        "<user:pass>": ["<addr-regex>","<addr-regex>"]
-      }
-    when <user> connects, their <pass> will be verified and then
-    each of the remote addresses will be compared against the list
-    of address regular expressions for a match. Addresses will
-    always come in the form "<remote-host>:<remote-port>" for normal remotes
-    and "R:<local-interface>:<local-port>" for reverse port forwarding
-    remotes. This file will be automatically reloaded on change.
-
-    --auth, An optional string representing a single user with full
-    access, in the form of <user:pass>. It is equivalent to creating an
-    authfile with {"<user:pass>": [""]}. If unset, it will use the
-    environment variable AUTH.
+    --auth-json, User authentication credentials as a JSON string.
+    This is useful for passing credentials via environment variables.
+    (defaults to the CHISEL_AUTH_JSON environment variable).
+    JSON format:
+    {
+      "users": [
+        {
+          "name": "username",
+          "password": "password"
+        }
+      ]
+    }
 
     --keepalive, An optional keepalive interval. Since the underlying
     transport is HTTP, in many instances we'll be traversing through
@@ -173,8 +169,7 @@ func server(args []string) {
 	config := &chserver.Config{}
 	flags.StringVar(&config.KeySeed, "key", "", "")
 	flags.StringVar(&config.KeyFile, "keyfile", "", "")
-	flags.StringVar(&config.AuthFile, "authfile", "", "")
-	flags.StringVar(&config.Auth, "auth", "", "")
+	flags.StringVar(&config.AuthJSON, "auth-json", "", "")
 	flags.DurationVar(&config.KeepAlive, "keepalive", 25*time.Second, "")
 	flags.StringVar(&config.TLS.Key, "tls-key", "", "")
 	flags.StringVar(&config.TLS.Cert, "tls-cert", "", "")
@@ -226,8 +221,8 @@ func server(args []string) {
 	} else if config.KeySeed == "" {
 		config.KeySeed = settings.Env("KEY")
 	}
-	if config.Auth == "" {
-		config.Auth = os.Getenv("AUTH")
+	if config.AuthJSON == "" {
+		config.AuthJSON = settings.Env("AUTH_JSON")
 	}
 	s, err := chserver.NewServer(config)
 	if err != nil {

@@ -2,7 +2,9 @@ package chserver
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -23,8 +25,7 @@ import (
 type Config struct {
 	KeySeed   string
 	KeyFile   string
-	AuthFile  string
-	Auth      string
+	AuthJSON  string
 	KeepAlive time.Duration
 	TLS       TLSConfig
 }
@@ -57,16 +58,23 @@ func NewServer(c *Config) (*Server, error) {
 	}
 	server.Info = true
 	server.users = settings.NewUserIndex(server.Logger)
-	if c.AuthFile != "" {
-		if err := server.users.LoadUsers(c.AuthFile); err != nil {
-			return nil, err
+	if c.AuthJSON != "" {
+		auth := struct {
+			Users []struct {
+				Name     string `json:"name"`
+				Password string `json:"password"`
+			} `json:"users"`
+		}{}
+		if err := json.Unmarshal([]byte(c.AuthJSON), &auth); err != nil {
+			return nil, fmt.Errorf("failed to parse auth-json: %s", err)
 		}
-	}
-	if c.Auth != "" {
-		u := &settings.User{Addrs: []*regexp.Regexp{settings.UserAllowAll}}
-		u.Name, u.Pass = settings.ParseAuth(c.Auth)
-		if u.Name != "" {
-			server.users.AddUser(u)
+		for _, creds := range auth.Users {
+			user := &settings.User{
+				Name:  creds.Name,
+				Pass:  creds.Password,
+				Addrs: []*regexp.Regexp{settings.UserAllowAll},
+			}
+			server.users.AddUser(user)
 		}
 	}
 
