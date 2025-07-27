@@ -23,10 +23,11 @@ import (
 
 // Config is the configuration for the chisel service
 type Config struct {
-	KeyFile   string
-	AuthJSON  string
-	KeepAlive time.Duration
-	TLS       TLSConfig
+	KeyFile    string
+	AuthJSON   string
+	AuthSecret string
+	KeepAlive  time.Duration
+	TLS        TLSConfig
 }
 
 // Server respresent a chisel service
@@ -37,6 +38,7 @@ type Server struct {
 	httpServer   *cnet.HTTPServer
 	sessCount    int32
 	sessions     *settings.Users
+	preauthed    *settings.Users
 	sshConfig    *ssh.ServerConfig
 	users        *settings.UserIndex
 }
@@ -54,6 +56,7 @@ func NewServer(c *Config) (*Server, error) {
 		httpServer: cnet.NewHTTPServer(),
 		Logger:     cio.NewLogger("server"),
 		sessions:   settings.NewUsers(),
+		preauthed:  settings.NewUsers(),
 	}
 	server.Info = true
 	server.users = settings.NewUserIndex(server.Logger)
@@ -175,6 +178,14 @@ func (s *Server) GetFingerprint() string {
 
 // authUser is responsible for validating the ssh user / password combination
 func (s *Server) authUser(c ssh.ConnMetadata, password []byte) (*ssh.Permissions, error) {
+	// check if user authenticated via JWT
+	remoteAddr := c.RemoteAddr().String()
+	if user, ok := s.preauthed.Get(remoteAddr); ok {
+		s.preauthed.Del(remoteAddr)
+		s.sessions.Set(string(c.SessionID()), user)
+		s.Debugf("JWT authentication for user %s from %s", user.Name, remoteAddr)
+		return nil, nil
+	}
 	// check if user authentication is enabled and if not, allow all
 	if s.users.Len() == 0 {
 		return nil, nil
@@ -184,7 +195,7 @@ func (s *Server) authUser(c ssh.ConnMetadata, password []byte) (*ssh.Permissions
 	user, found := s.users.Get(n)
 	if !found || user.Pass != string(password) {
 		s.Debugf("Login failed for user: %s", n)
-		return nil, errors.New("Invalid authentication for username: %s")
+		return nil, fmt.Errorf("Invalid authentication for username: %s", n)
 	}
 	// insert the user session map
 	// TODO this should probably have a lock on it given the map isn't thread-safe

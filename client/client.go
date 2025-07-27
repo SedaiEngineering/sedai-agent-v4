@@ -31,6 +31,7 @@ import (
 type Config struct {
 	Fingerprint      string
 	Auth             string
+	AuthToken        string
 	KeepAlive        time.Duration
 	MaxRetryCount    int
 	MaxRetryInterval time.Duration

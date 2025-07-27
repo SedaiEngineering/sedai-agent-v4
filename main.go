@@ -107,6 +107,10 @@ var serverHelp = `
     provided, a key will be generated for one-time use. (defaults to the
     CHISEL_KEY_FILE environment variable).
 
+    --auth-secret, A shared secret used to validate JWTs.
+    This is useful for passing credentials via environment variables.
+    (defaults to the CHISEL_AUTH_SECRET environment variable).
+
     --auth-json, User authentication credentials as a JSON string.
     This is useful for passing credentials via environment variables.
     (defaults to the CHISEL_AUTH_JSON environment variable).
@@ -145,6 +149,7 @@ func server(args []string) {
 	config := &chserver.Config{}
 	flags.StringVar(&config.KeyFile, "keyfile", "", "")
 	flags.StringVar(&config.AuthJSON, "auth-json", "", "")
+	flags.StringVar(&config.AuthSecret, "auth-secret", "", "")
 	flags.DurationVar(&config.KeepAlive, "keepalive", 25*time.Second, "")
 	flags.StringVar(&config.TLS.Key, "tls-key", "", "")
 	flags.StringVar(&config.TLS.Cert, "tls-cert", "", "")
@@ -182,6 +187,9 @@ func server(args []string) {
 	}
 	if config.AuthJSON == "" {
 		config.AuthJSON = settings.Env("AUTH_JSON")
+	}
+	if config.AuthSecret == "" {
+		config.AuthSecret = settings.Env("AUTH_SECRET")
 	}
 	s, err := chserver.NewServer(config)
 	if err != nil {
@@ -276,6 +284,9 @@ var clientHelp = `
     the credentials inside the server's --authfile. defaults to the
     AUTH environment variable.
 
+    --auth-token, An optional bearer token for client authentication.
+    defaults to the AUTH_TOKEN environment variable.
+
     --keepalive, An optional keepalive interval. Since the underlying
     transport is HTTP, in many instances we'll be traversing through
     proxies, often these proxies will close idle connections. You must
@@ -322,6 +333,7 @@ func client(args []string) {
 	config := chclient.Config{Headers: http.Header{}}
 	flags.StringVar(&config.Fingerprint, "fingerprint", "", "")
 	flags.StringVar(&config.Auth, "auth", "", "")
+	flags.StringVar(&config.AuthToken, "auth-token", "", "")
 	flags.DurationVar(&config.KeepAlive, "keepalive", 25*time.Second, "")
 	flags.IntVar(&config.MaxRetryCount, "max-retry-count", -1, "")
 	flags.DurationVar(&config.MaxRetryInterval, "max-retry-interval", 0, "")
@@ -351,10 +363,17 @@ func client(args []string) {
 	if config.Auth == "" {
 		config.Auth = os.Getenv("AUTH")
 	}
+	if config.AuthToken == "" {
+		config.AuthToken = os.Getenv("AUTH_TOKEN")
+	}
 	//move hostname onto headers
 	if *hostname != "" {
 		config.Headers.Set("Host", *hostname)
 		config.TLS.ServerName = *hostname
+	}
+
+	if config.AuthToken != "" {
+		config.Headers.Set("Authorization", "Bearer "+config.AuthToken)
 	}
 
 	if *sni != "" {

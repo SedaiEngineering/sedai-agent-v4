@@ -1,11 +1,13 @@
 package chserver
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"sync/atomic"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	chshare "github.com/jpillora/chisel/share"
 	"github.com/jpillora/chisel/share/cnet"
 	"github.com/jpillora/chisel/share/settings"
@@ -46,6 +48,33 @@ func (s *Server) handleClientHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleWebsocket(w http.ResponseWriter, req *http.Request) {
 	id := atomic.AddInt32(&s.sessCount, 1)
 	l := s.Fork("session#%d", id)
+	// authenticate with jwt
+	if s.config.AuthSecret != "" {
+		authHeader := req.Header.Get("Authorization")
+		if authHeader != "" {
+			parts := strings.Split(authHeader, " ")
+			if len(parts) == 2 && strings.ToLower(parts[0]) == "bearer" {
+				tokenString := parts[1]
+				// Parse and validate the token
+				token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+					if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+						return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+					}
+					return []byte(s.config.AuthSecret), nil
+				})
+
+				if err == nil && token.Valid {
+					if claims, ok := token.Claims.(jwt.MapClaims); ok {
+						if username, ok := claims["user"].(string); ok {
+							if user, found := s.users.Get(username); found {
+								s.preauthed.Set(req.RemoteAddr, user)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 	wsConn, err := upgrader.Upgrade(w, req, nil)
 	if err != nil {
 		l.Debugf("Failed to upgrade (%s)", err)
