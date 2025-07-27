@@ -340,6 +340,7 @@ func client(args []string) {
 	flags.DurationVar(&config.KeepAlive, "keepalive", 25*time.Second, "")
 	flags.IntVar(&config.MaxRetryCount, "max-retry-count", -1, "")
 	flags.DurationVar(&config.MaxRetryInterval, "max-retry-interval", 0, "")
+	flags.StringVar(&config.Proxy, "proxy", "", "")
 	flags.StringVar(&config.TLS.CA, "tls-ca", "", "")
 	flags.BoolVar(&config.TLS.SkipVerify, "tls-skip-verify", false, "")
 	flags.StringVar(&config.TLS.Cert, "tls-cert", "", "")

@@ -23,6 +23,7 @@ import (
 	"github.com/jpillora/chisel/share/tunnel"
 
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/net/proxy"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -34,6 +35,7 @@ type Config struct {
 	MaxRetryCount    int
 	MaxRetryInterval time.Duration
 	Server           string
+	Proxy            string
 	Remotes          []string
 	Headers          http.Header
 	TLS              TLSConfig
@@ -57,6 +59,7 @@ type Client struct {
 	computed  settings.Config
 	sshConfig *ssh.ClientConfig
 	tlsConfig *tls.Config
+	proxyURL  *url.URL
 	server    string
 	connCount cnet.ConnCount
 	stop      func()
@@ -142,6 +145,13 @@ func NewClient(c *Config) (*Client, error) {
 		}
 		client.computed.Remotes = append(client.computed.Remotes, r)
 	}
+	//outbound proxy
+	if p := c.Proxy; p != "" {
+		client.proxyURL, err = url.Parse(p)
+		if err != nil {
+			return nil, fmt.Errorf("Invalid proxy URL (%s)", err)
+		}
+	}
 	//ssh auth and config
 	user, pass := settings.ParseAuth(c.Auth)
 	client.sshConfig = &ssh.ClientConfig{
@@ -172,6 +182,37 @@ func (c *Client) Run() error {
 	return c.Wait()
 }
 
+func (c *Client) setProxy(u *url.URL, d *websocket.Dialer) error {
+	// CONNECT proxy
+	if !strings.HasPrefix(u.Scheme, "socks") {
+		d.Proxy = func(*http.Request) (*url.URL, error) {
+			return u, nil
+		}
+		return nil
+	}
+	// SOCKS5 proxy
+	if u.Scheme != "socks" && u.Scheme != "socks5h" {
+		return fmt.Errorf(
+			"unsupported socks proxy type: %s:// (only socks5h:// or socks:// is supported)",
+			u.Scheme,
+		)
+	}
+	var auth *proxy.Auth
+	if u.User != nil {
+		pass, _ := u.User.Password()
+		auth = &proxy.Auth{
+			User:     u.User.Username(),
+			Password: pass,
+		}
+	}
+	socksDialer, err := proxy.SOCKS5("tcp", u.Host, auth, proxy.Direct)
+	if err != nil {
+		return err
+	}
+	d.NetDial = socksDialer.Dial
+	return nil
+}
+
 func (c *Client) verifyServer(hostname string, remote net.Addr, key ssh.PublicKey) error {
 	expect := c.config.Fingerprint
 	if expect == "" {
@@ -196,7 +237,11 @@ func (c *Client) Start(ctx context.Context) error {
 	c.stop = cancel
 	eg, ctx := errgroup.WithContext(ctx)
 	c.eg = eg
-	c.Infof("Connecting to %s\n", c.server)
+	via := ""
+	if c.proxyURL != nil {
+		via = " via " + c.proxyURL.String()
+	}
+	c.Infof("Connecting to %s%s\n", c.server, via)
 	//connect to chisel server
 	eg.Go(func() error {
 		return c.connectionLoop(ctx)
