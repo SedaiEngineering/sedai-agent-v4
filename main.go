@@ -103,8 +103,9 @@ var serverHelp = `
     --port, -p, Defines the HTTP listening port (defaults to the environment
     variable PORT and fallsback to port 8080).
 
-    --keyfile, Path to the server's private key. This is required.
-    (defaults to the CHISEL_KEY_FILE environment variable).
+    --keyfile, An optional path to a PEM-encoded SSH private key. If not
+    provided, a key will be generated for one-time use. (defaults to the
+    CHISEL_KEY_FILE environment variable).
 
     --auth-json, User authentication credentials as a JSON string.
     This is useful for passing credentials via environment variables.

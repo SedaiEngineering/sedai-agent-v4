@@ -114,8 +114,9 @@ $ chisel server --help
     --port, -p, Defines the HTTP listening port (defaults to the environment
     variable PORT and fallsback to port 8080).
 
-    --keyfile, Path to the server's private key. This is required.
-    (defaults to the CHISEL_KEY_FILE environment variable).
+    --keyfile, An optional path to a PEM-encoded SSH private key. If not
+    provided, a key will be generated for one-time use. (defaults to the
+    CHISEL_KEY_FILE environment variable).
 
     --auth-json, User authentication credentials as a JSON string.
     This is useful for passing credentials via environment variables.
@@ -275,7 +276,7 @@ $ chisel client --help
 
 ### Security
 
-Encryption is always enabled. When you start a chisel server, you must provide an SSH private key using the `--keyfile` option. The server's public key fingerprint (base64 encoded SHA256) will be displayed when the server starts. When clients connect, they will also display this fingerprint. For security, clients should use the `--fingerprint` option to ensure they are connecting to the correct server. See the `--help` above for more information.
+Encryption is always enabled. When you start a chisel server, it will generate a temporary in-memory private key for one-time use. For persistent sessions and enhanced security, you should provide a private key using the `--keyfile` option. The server's public key fingerprint (base64 encoded SHA256) will be displayed when the server starts. When clients connect, they will also display this fingerprint. For security, clients should use the `--fingerprint` option to ensure they are connecting to the correct server. See the `--help` above for more information.
 
 ### Authentication
 

@@ -77,28 +77,32 @@ func NewServer(c *Config) (*Server, error) {
 		}
 	}
 
-	if c.KeyFile == "" {
-		return nil, errors.New("server key file not provided. see --keyfile")
-	}
-
 	var pemBytes []byte
 	var err error
-	var key []byte
+	if c.KeyFile != "" {
+		var key []byte
 
-	if ccrypto.IsChiselKey([]byte(c.KeyFile)) {
-		key = []byte(c.KeyFile)
-	} else {
-		key, err = os.ReadFile(c.KeyFile)
-		if err != nil {
-			log.Fatalf("Failed to read key file %s", c.KeyFile)
+		if ccrypto.IsChiselKey([]byte(c.KeyFile)) {
+			key = []byte(c.KeyFile)
+		} else {
+			key, err = os.ReadFile(c.KeyFile)
+			if err != nil {
+				log.Fatalf("Failed to read key file %s", c.KeyFile)
+			}
 		}
-	}
 
-	pemBytes = key
-	if ccrypto.IsChiselKey(key) {
-		pemBytes, err = ccrypto.ChiselKey2PEM(key)
+		pemBytes = key
+		if ccrypto.IsChiselKey(key) {
+			pemBytes, err = ccrypto.ChiselKey2PEM(key)
+			if err != nil {
+				log.Fatalf("Invalid key %s", string(key))
+			}
+		}
+	} else {
+		//generate private key
+		pemBytes, err = ccrypto.Seed2PEM("")
 		if err != nil {
-			log.Fatalf("Invalid key %s", string(key))
+			log.Fatal("Failed to generate key")
 		}
 	}
 
