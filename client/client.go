@@ -167,7 +167,7 @@ func NewClient(c *Config) (*Client, error) {
 	client.tunnel = tunnel.New(tunnel.Config{
 		Logger:    client.Logger,
 		Inbound:   true, //client always accepts inbound
-		Outbound:  true,
+		Outbound:  len(c.Remotes) > 0,
 		Socks:     false,
 		KeepAlive: client.config.KeepAlive,
 	})

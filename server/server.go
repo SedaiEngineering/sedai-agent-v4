@@ -5,8 +5,6 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"os"
 	"regexp"
 	"time"
