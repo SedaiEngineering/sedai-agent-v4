@@ -2,7 +2,7 @@ github.com/andrew-d/go-termutil v0.0.0-20150726205930-009166a695a2 h1:axBiC50cNZ
 github.com/andrew-d/go-termutil v0.0.0-20150726205930-009166a695a2/go.mod h1:jnzFpU88PccN/tPPhCpnNU8mZphvKxYM9lLNkd8e+os=
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 h1:0CwZNZbxp69SHPdPJAN/hZIm0C4OItdklCFmMRWYpio=
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkYZB8zMSxRWpUBQtwG5a7fFgvEO+odwuTv2gs=
-github.com/fsnotify/fsnotify v1.7.0 h1:J+28MF8a6TWAJE7wIt1V2T3iIARw1c7yYNeJ/3Qk2fA=
+github.com/fsnotify/fsnotify v1.7.0 h1:8JEhPFa5W2WU7YfeZzPNqzMP6Lwt7L2715Ggo0nosvA=
 github.com/fsnotify/fsnotify v1.7.0/go.mod h1:Ah4x1J4P1w34D3pkpAEe5dqI8d80f8j8nQ3xprI74sA=
 github.com/gorilla/websocket v1.5.1 h1:g3vVxf1iQ2gD657Tq5td2qQf/c0gIsMAEW0r5J2i0Cg=
 github.com/gorilla/websocket v1.5.1/go.mod h1:rGDRS5/S06rQkP7yqysj0L8KAlj7A2t6iN4fGv6aWyI=
@@ -20,7 +20,7 @@ golang.org/x/crypto v0.25.0 h1:0AALyHpeJ6hY0T9sIYn2q0sP/fA1DEQG/4uXJqg+4OQ=
 golang.org/x/crypto v0.25.0/go.mod h1:sS8G82L3eVR8sHidyvI+g+5cTPOhQz3w5sJ2J3g601I=
 golang.org/x/net v0.27.0 h1:Pz6Vp50eC1i+IigTfsfyTfDpsbBKYkHQ7g5rKqZe4+s=
 golang.org/x/net v0.27.0/go.mod h1:4N/aIwi19I3a2zC/yG7Cac4rQy+xIq6c+26EuKVh3Ek=
-golang.org/x/sync v0.7.0 h1:0V07veCx+E8D2hZkRT1202f5WfGZNCrW23v2Hn7aNlA=
+golang.org/x/sync v0.7.0 h1:YsImfSBoP9QPYL0xyKJPq0gcaJdG3rInoqxTWbfQu9M=
 golang.org/x/sync v0.7.0/go.mod h1:O5kAixd0q69d1n8vG8ddKkS2PPAwB8Nf/HD7+MFQc2s=
 golang.org/x/sys v0.22.0 h1:JdqKq7x2k/5/Ei+L5GsyDxJFDVlyiL+zYtC4bBfG9pM=
 golang.org/x/sys v0.22.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
