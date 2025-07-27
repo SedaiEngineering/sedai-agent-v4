@@ -134,20 +134,10 @@ var serverHelp = `
     to '25s' (set to 0s to disable).
 
     --tls-key, Enables TLS and provides optional path to a PEM-encoded
-    TLS private key. When this flag is set, you must also set --tls-cert,
-    and you cannot set --tls-domain.
+    TLS private key. When this flag is set, you must also set --tls-cert.
 
     --tls-cert, Enables TLS and provides optional path to a PEM-encoded
-    TLS certificate. When this flag is set, you must also set --tls-key,
-    and you cannot set --tls-domain.
-
-    --tls-domain, Enables TLS and automatically acquires a TLS key and
-    certificate using LetsEncrypt. Setting --tls-domain requires port 443.
-    You may specify multiple --tls-domain flags to serve multiple domains.
-    The resulting files are cached in the "$HOME/.cache/chisel" directory.
-    You can modify this path by setting the CHISEL_LE_CACHE variable,
-    or disable caching by setting this variable to "-". You can optionally
-    provide a certificate notification email by setting CHISEL_LE_EMAIL.
+    TLS certificate. When this flag is set, you must also set --tls-key.
 
     --tls-ca, a path to a PEM encoded CA certificate bundle or a directory
     holding multiple PEM encode CA certificate bundle files, which is used to 
@@ -165,7 +155,6 @@ func server(args []string) {
 	flags.DurationVar(&config.KeepAlive, "keepalive", 25*time.Second, "")
 	flags.StringVar(&config.TLS.Key, "tls-key", "", "")
 	flags.StringVar(&config.TLS.Cert, "tls-cert", "", "")
-	flags.Var(multiFlag{&config.TLS.Domains}, "tls-domain", "")
 	flags.StringVar(&config.TLS.CA, "tls-ca", "", "")
 
 	host := flags.String("host", "", "")
