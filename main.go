@@ -104,15 +104,11 @@ var serverHelp = `
     --port, -p, Defines the HTTP listening port (defaults to the environment
     variable PORT and fallsback to port 8080).
 
-    --keygen, A path to write a newly generated PEM-encoded SSH private key file.
-    If users depend on your --key fingerprint, you may also include your --key to
-    output your existing key. Use - (dash) to output the generated key to stdout.
-
     --keyfile, An optional path to a PEM-encoded SSH private key. When
     this flag is set, the --key option is ignored, and the provided private key
     is used to secure all communications. (defaults to the CHISEL_KEY_FILE
     environment variable). Since ECDSA keys are short, you may also set keyfile
-    to an inline base64 private key (e.g. chisel server --keygen - | base64).
+    to an inline base64 private key.
 
     --auth-json, User authentication credentials as a JSON string.
     This is useful for passing credentials via environment variables.
@@ -162,20 +158,12 @@ func server(args []string) {
 	port := flags.String("port", "", "")
 	pid := flags.Bool("pid", false, "")
 	verbose := flags.Bool("v", false, "")
-	keyGen := flags.String("keygen", "", "")
 
 	flags.Usage = func() {
 		fmt.Print(serverHelp)
 		os.Exit(0)
 	}
 	flags.Parse(args)
-
-	if *keyGen != "" {
-		if err := ccrypto.GenerateKeyFile(*keyGen, ""); err != nil {
-			log.Fatal(err)
-		}
-		return
-	}
 
 	if *host == "" {
 		*host = os.Getenv("HOST")
