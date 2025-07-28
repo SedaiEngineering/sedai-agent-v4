@@ -23,11 +23,10 @@ import (
 
 // Config is the configuration for the chisel service
 type Config struct {
-	KeyFile    string
-	AuthJSON   string
-	AuthSecret string
-	KeepAlive  time.Duration
-	TLS        TLSConfig
+	KeyFile   string
+	AuthJSON  string
+	KeepAlive time.Duration
+	TLS       TLSConfig
 }
 
 // Server respresent a chisel service
@@ -183,7 +182,7 @@ func (s *Server) authUser(c ssh.ConnMetadata, password []byte) (*ssh.Permissions
 	if user, ok := s.preauthed.Get(remoteAddr); ok {
 		s.preauthed.Del(remoteAddr)
 		s.sessions.Set(string(c.SessionID()), user)
-		s.Debugf("JWT authentication for user %s from %s", user.Name, remoteAddr)
+		s.Debugf("Pre-authentication for user %s from %s", user.Name, remoteAddr)
 		return nil, nil
 	}
 	// check if user authentication is enabled and if not, allow all

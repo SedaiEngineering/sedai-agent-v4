@@ -107,10 +107,6 @@ var serverHelp = `
     provided, a key will be generated for one-time use. (defaults to the
     CHISEL_KEY_FILE environment variable).
 
-    --auth-secret, A shared secret used to validate JWTs.
-    This is useful for passing credentials via environment variables.
-    (defaults to the CHISEL_AUTH_SECRET environment variable).
-
     --auth-json, User authentication credentials as a JSON string.
     This is useful for passing credentials via environment variables.
     (defaults to the CHISEL_AUTH_JSON environment variable).
@@ -149,7 +145,6 @@ func server(args []string) {
 	config := &chserver.Config{}
 	flags.StringVar(&config.KeyFile, "keyfile", "", "")
 	flags.StringVar(&config.AuthJSON, "auth-json", "", "")
-	flags.StringVar(&config.AuthSecret, "auth-secret", "", "")
 	flags.DurationVar(&config.KeepAlive, "keepalive", 25*time.Second, "")
 	flags.StringVar(&config.TLS.Key, "tls-key", "", "")
 	flags.StringVar(&config.TLS.Cert, "tls-cert", "", "")
@@ -187,9 +182,6 @@ func server(args []string) {
 	}
 	if config.AuthJSON == "" {
 		config.AuthJSON = settings.Env("AUTH_JSON")
-	}
-	if config.AuthSecret == "" {
-		config.AuthSecret = settings.Env("AUTH_SECRET")
 	}
 	s, err := chserver.NewServer(config)
 	if err != nil {
