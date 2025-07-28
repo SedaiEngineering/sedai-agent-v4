@@ -116,10 +116,13 @@ func (tl *testLayout) setup(t *testing.T) (server *chserver.Server, client *chcl
 		// 	t.Fatalf("goroutines left %d", d)
 		// }
 	}
-	//wait a bit...
-	//TODO: client signal API, similar to os.Notify(signal)
-	//      wait for client setup
-	time.Sleep(50 * time.Millisecond)
+	//wait for client to be ready
+	select {
+	case <-client.Ready:
+		//ready
+	case <-time.After(5 * time.Second):
+		t.Fatal("client not ready in time")
+	}
 	//ready
 	return server, client, teardown
 }

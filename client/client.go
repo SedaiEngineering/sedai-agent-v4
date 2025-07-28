@@ -66,6 +66,7 @@ type Client struct {
 	stop      func()
 	eg        *errgroup.Group
 	tunnel    *tunnel.Tunnel
+	Ready     chan struct{}
 }
 
 // NewClient creates a new client instance
@@ -99,6 +100,7 @@ func NewClient(c *Config) (*Client, error) {
 		},
 		server:    u.String(),
 		tlsConfig: nil,
+		Ready:     make(chan struct{}),
 	}
 	//set default log level
 	client.Logger.Info = true

@@ -20,8 +20,12 @@ import (
 func (c *Client) connectionLoop(ctx context.Context) error {
 	//connection loop!
 	b := &backoff.Backoff{Max: c.config.MaxRetryInterval}
+	var lastErr error
 	for {
 		connected, err := c.connectionOnce(ctx)
+		if err != nil {
+			lastErr = err
+		}
 		//reset backoff after successful connections
 		if connected {
 			b.Reset()
@@ -30,7 +34,7 @@ func (c *Client) connectionLoop(ctx context.Context) error {
 		attempt := int(b.Attempt())
 		maxAttempt := c.config.MaxRetryCount
 		//dont print closed-connection errors
-		if strings.HasSuffix(err.Error(), "use of closed network connection") {
+		if err != nil && strings.HasSuffix(err.Error(), "use of closed network connection") {
 			err = io.EOF
 		}
 		//show error message and attempt counts (excluding disconnects)
@@ -57,11 +61,11 @@ func (c *Client) connectionLoop(ctx context.Context) error {
 			continue //retry now
 		case <-ctx.Done():
 			c.Infof("Cancelled")
-			return nil
+			return ctx.Err()
 		}
 	}
 	c.Close()
-	return nil
+	return lastErr
 }
 
 // connectionOnce connects to the chisel server and blocks
@@ -101,10 +105,7 @@ func (c *Client) connectionOnce(ctx context.Context) (connected bool, err error)
 	if err != nil {
 		e := err.Error()
 		if strings.Contains(e, "unable to authenticate") {
-			c.Infof("Authentication failed")
-			c.Debugf(e)
-		} else {
-			c.Infof(e)
+			return false, fmt.Errorf("authentication failed")
 		}
 		return false, err
 	}
@@ -126,6 +127,10 @@ func (c *Client) connectionOnce(ctx context.Context) (connected bool, err error)
 		return false, errors.New(string(configerr))
 	}
 	c.Infof("Connected (Latency %s)", time.Since(t0))
+	if c.Ready != nil {
+		close(c.Ready)
+		c.Ready = nil
+	}
 	//connected, handover ssh connection for tunnel to use, and block
 	err = c.tunnel.BindSSH(ctx, sshConn, reqs, chans)
 	c.Infof("Disconnected")
