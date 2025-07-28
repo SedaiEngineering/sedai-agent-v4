@@ -2,16 +2,10 @@ package e2e_test
 
 import (
 	"context"
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/x509"
-	"encoding/pem"
 	"io"
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 	"testing"
 	"time"

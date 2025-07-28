@@ -1,7 +1,6 @@
 package chclient
 
 import (
-	"crypto/elliptic"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -9,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jpillora/chisel/share/ccrypto"
 	"golang.org/x/crypto/ssh"
 )
 
