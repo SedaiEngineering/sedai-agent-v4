@@ -56,7 +56,7 @@ func NewServer(c *Config) (*Server, error) {
 		sessions:   settings.NewUsers(),
 		preauthed:  settings.NewUsers(),
 	}
-	server.Info = true
+	// server.Info = true
 	server.users = settings.NewUserIndex(server.Logger)
 	if c.AuthJSON != "" {
 		auth := struct {

@@ -40,19 +40,39 @@ Run the server executable, providing the JSON string.
     ./sedai-agent-v4 server --port 443 --auth-json '{"users":[{"name":"customer01","password":"super-secret-token-for-customer01"}]}'
     ```
 
+**Server Features:**
+- Health check endpoint: `GET /health` returns "OK"  
+- Version endpoint: `GET /version` returns the build version
+- Header-based pre-authentication: Clients can be pre-authenticated using the `X-Chisel-User` header (useful for proxy setups)
+- TLS support with optional mutual TLS using `--tls-cert`, `--tls-key`, and `--tls-ca` flags
+
 ### Client
 
 The client runs in the customer's environment and establishes a reverse tunnel to the server.
 
 **To run the client:**
 
-Run the client executable, providing the authentication string, server address, and the reverse tunnel remote definition.
+Run the client executable, providing authentication, server address, and the reverse tunnel remote definition.
 
 The remote `R:9000:db1.customer.internal:5432` tells the server to listen on its port `9000` and forward all traffic to the client, which will then connect to `db1.customer.internal:5432`.
 
+**Option 1: Username/password authentication**
 ```bash
 ./sedai-agent-v4 client \
   --auth "customer01:super-secret-token-for-customer01" \
   your-tenant.saas.com:443 \
   R:9000:db1.customer.internal:5432
 ```
+
+**Option 2: Bearer token authentication**
+```bash
+./sedai-agent-v4 client \
+  --auth-token "your-bearer-token" \
+  your-tenant.saas.com:443 \
+  R:9000:db1.customer.internal:5432
+```
+
+**Additional Options:**
+- Use `--fingerprint` to verify the server's SSH public key for enhanced security
+- Use `--tls-skip-verify` to skip TLS certificate verification (not recommended for production)
+- Use `--proxy` to connect through an HTTP CONNECT or SOCKS5 proxy

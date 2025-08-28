@@ -45,7 +45,7 @@ func TestCustomHeaders(t *testing.T) {
 
 func TestVerifyFingerprint(t *testing.T) {
 	config := Config{
-		Fingerprint: "qmrRoo8MIqePv3jC8+wv49gU6uaFgD3FASQx9V8KdmY=",
+		Fingerprint: "D98Fp2gY2KQxSce7b3ku1O658VwhJ3hECW1BEMGh4SE=",
 	}
 	c, err := NewClient(&config)
 	if err != nil {

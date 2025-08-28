@@ -104,8 +104,7 @@ The client connects to the server and defines the reverse tunnel, mapping the se
 
 # Run the client agent
 ./sedai-agent-v4 client \
-  --user "customer01" \
-  --password "super-secret-token-for-customer01" \
+  --auth "customer01:super-secret-token-for-customer01" \
   your-tenant.saas.com:443 \
   R:9000:db1.customer.internal:5432
 
